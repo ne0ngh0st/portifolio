@@ -3,25 +3,444 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base quente (CRT / âmbar) — Autopel usa classes próprias + accent-blue */
+  --bg-primary: #090705;
+  --bg-surface: #100d0a;
+  --bg-elevated: #1a1510;
+  --text-primary: #f0ebe3;
+  --text-muted: #9a8f7e;
+  --accent-blue-dark: #1b6b8a;
+  --accent-blue-light: #1aace0;
+  --accent-green: #00ff41;
+  --accent-green-dim: #00cc33;
+  --border: #2a2218;
+  /* CRT monocromático (âmbar) — sem ciano */
+  --phosphor-amber: #ffcc6e;
+  --phosphor-amber-mid: #c99545;
+  --phosphor-amber-dim: #8a6638;
+  --phosphor-glow: rgba(255, 200, 110, 0.55);
+  --phosphor-glow-soft: rgba(255, 180, 90, 0.22);
+  /* Scrollbar “TTY” — trilha + polegar (só variáveis âmbar não entram aqui) */
+  --term-scroll-bg: #020805;
+  --term-scroll-grid: rgba(0, 255, 90, 0.045);
+  --term-scroll-border: rgba(0, 200, 80, 0.22);
+  --term-scroll-thumb: #00a62a;
+  --term-scroll-thumb-hi: #00e838;
+  --term-scroll-glow: rgba(0, 255, 100, 0.38);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: auto;
+  scrollbar-color: var(--term-scroll-thumb) var(--term-scroll-bg);
+  scrollbar-width: auto;
 }
+
+/* Rolagem só no main — sem scroll-snap; padding só para âncoras com nav fixa. */
+.home-deck {
+  scroll-padding-top: 4.5rem;
+  scrollbar-color: var(--term-scroll-thumb) var(--term-scroll-bg);
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.deck-slide {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  width: 100%;
+  flex-shrink: 0;
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+/* Rodapé: só a altura do conteúdo (evita 100dvh vazio). */
+.deck-slide.deck-slide--compact {
+  min-height: 0;
+}
+
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--phosphor-amber-dim);
+  color: var(--bg-primary);
+}
+
+/*
+ * Barra de rolagem — “buffer vertical” de terminal (WebKit/Blink).
+ * Trilha: fundo preto-verde + scanlines; polegar: bloco monospace, borda TTY.
+ */
+html::-webkit-scrollbar,
+.home-deck::-webkit-scrollbar {
+  width: 15px;
+}
+
+html::-webkit-scrollbar-corner,
+.home-deck::-webkit-scrollbar-corner {
+  background: var(--term-scroll-bg);
+}
+
+html::-webkit-scrollbar-track,
+.home-deck::-webkit-scrollbar-track {
+  background-color: var(--term-scroll-bg);
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      var(--term-scroll-grid) 3px,
+      var(--term-scroll-grid) 4px
+    ),
+    linear-gradient(90deg, rgba(0, 255, 80, 0.06) 0%, transparent 42%);
+  border-left: 1px solid var(--term-scroll-border);
+  box-shadow: inset 2px 0 0 rgba(0, 0, 0, 0.55);
+}
+
+html::-webkit-scrollbar-thumb {
+  border-radius: 1px;
+  border: 1px solid rgba(0, 0, 0, 0.65);
+  background-color: var(--term-scroll-thumb);
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent 0 2px,
+    rgba(0, 0, 0, 0.18) 2px 3px
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 255, 120, 0.25),
+    0 0 12px var(--term-scroll-glow);
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background-color: var(--term-scroll-thumb-hi);
+  box-shadow:
+    inset 0 0 0 1px rgba(180, 255, 200, 0.35),
+    0 0 16px var(--term-scroll-glow);
+}
+
+html::-webkit-scrollbar-thumb:active {
+  background-color: color-mix(in srgb, var(--term-scroll-thumb-hi) 88%, #fff);
+}
+
+.home-deck::-webkit-scrollbar-thumb {
+  border-radius: 1px;
+  border: 1px solid rgba(0, 0, 0, 0.65);
+  background-color: var(--term-scroll-thumb);
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent 0 2px,
+    rgba(0, 0, 0, 0.18) 2px 3px
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 255, 120, 0.25),
+    0 0 12px var(--term-scroll-glow);
+}
+
+.home-deck::-webkit-scrollbar-thumb:hover {
+  background-color: var(--term-scroll-thumb-hi);
+  box-shadow:
+    inset 0 0 0 1px rgba(180, 255, 200, 0.35),
+    0 0 16px var(--term-scroll-glow);
+}
+
+.home-deck::-webkit-scrollbar-thumb:active {
+  background-color: color-mix(in srgb, var(--term-scroll-thumb-hi) 88%, #fff);
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+/* Herói CRT — scanlines, vinheta, ruído (reduzido com prefers-reduced-motion) */
+.crt-hero-section {
+  --crt-bloom: 0 0 1px var(--phosphor-glow-soft), 0 0 12px var(--phosphor-glow-soft),
+    0 0 28px rgba(255, 170, 80, 0.12);
+}
+
+.crt-phosphor-text {
+  color: var(--phosphor-amber);
+  text-shadow: var(--crt-bloom);
+}
+
+.crt-phosphor-muted {
+  color: var(--phosphor-amber-mid);
+  text-shadow: 0 0 6px rgba(255, 180, 100, 0.25);
+}
+
+.crt-screen-surface {
+  position: relative;
+  isolation: isolate;
+  border-radius: 1.25rem;
+  background: radial-gradient(
+      ellipse 85% 70% at 50% 45%,
+      rgba(18, 16, 14, 0.55) 0%,
+      transparent 58%
+    ),
+    #070605;
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.92), inset 0 0 28px rgba(0, 0, 0, 0.45);
+  transform: perspective(900px) rotateX(1.2deg);
+  transform-origin: center center;
+}
+
+.crt-scanlines-overlay {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.22) 2px,
+    rgba(0, 0, 0, 0.22) 4px
+  );
+}
+
+.crt-scanlines-overlay-strong {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 1px,
+    rgba(0, 0, 0, 0.18) 1px,
+    rgba(0, 0, 0, 0.18) 3px
+  );
+}
+
+.crt-vignette-overlay {
+  background: radial-gradient(ellipse at center, transparent 38%, rgba(0, 0, 0, 0.58) 100%);
+}
+
+.crt-vignette-overlay-strong {
+  background: radial-gradient(
+    ellipse 95% 85% at 50% 48%,
+    transparent 32%,
+    rgba(0, 0, 0, 0.22) 58%,
+    rgba(0, 0, 0, 0.72) 100%
+  );
+}
+
+/* Fósforo / brilho instável só no painel (não herda no texto de fora) */
+.crt-phosphor-flash-overlay {
+  background: radial-gradient(
+    ellipse 115% 75% at 50% 48%,
+    rgba(255, 220, 180, 0.07),
+    transparent 62%
+  );
+  mix-blend-mode: soft-light;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .crt-flicker {
+    animation: crt-flicker 5.2s steps(1, end) infinite;
+  }
+
+  .crt-phosphor-flash-overlay {
+    animation: crt-phosphor-flash 3.8s steps(3, end) infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crt-flicker,
+  .crt-phosphor-flash-overlay {
+    animation: none;
+  }
+}
+
+@keyframes crt-flicker {
+  0%   { opacity: 1; }
+  80%  { opacity: 1; }
+  81%  { opacity: 0.78; }
+  82%  { opacity: 1; }
+  90%  { opacity: 0.60; }
+  91%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+/* ── CRT Boot / Power-On animations ───────────────────────────── */
+
+/* Scan line que varre a tela de cima a baixo na inicialização */
+@keyframes crt-boot-scan {
+  0%   { transform: translateY(-100%); opacity: 0.9; }
+  80%  { opacity: 0.7; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+/* Flickering intenso durante o warm-up do phosphor */
+@keyframes crt-boot-flicker {
+  0%   { opacity: 0; }
+  10%  { opacity: 0.85; }
+  13%  { opacity: 0.2; }
+  16%  { opacity: 0.95; }
+  20%  { opacity: 0.4; }
+  23%  { opacity: 1; }
+  30%  { opacity: 0.55; }
+  35%  { opacity: 1; }
+  45%  { opacity: 0.7; }
+  50%  { opacity: 1; }
+  60%  { opacity: 0.88; }
+  70%  { opacity: 1; }
+  80%  { opacity: 0.92; }
+  90%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+/* Flash branco inicial — simula o burst de phosphor ao ligar */
+@keyframes crt-boot-burst {
+  0%   { opacity: 0.9; transform: scale(1.15); }
+  40%  { opacity: 0.35; transform: scale(1.0); }
+  100% { opacity: 0; transform: scale(1.0); }
+}
+
+@keyframes crt-phosphor-flash {
+  0%,
+  94%,
+  100% {
+    opacity: 0;
+  }
+  95% {
+    opacity: 0.28;
+  }
+  96% {
+    opacity: 0.06;
+  }
+  97% {
+    opacity: 0.2;
+  }
+}
+
+/* Seções fora do herói — títulos e painéis CRT âmbar */
+.crt-section-title {
+  color: var(--phosphor-amber);
+  text-shadow: 0 0 1px var(--phosphor-glow-soft), 0 0 18px rgba(255, 170, 80, 0.12);
+}
+
+.crt-panel {
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--phosphor-amber-dim) 45%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 88%, #1a1008);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 24px -8px var(--phosphor-glow-soft);
+}
+
+.crt-panel-accent-border {
+  border-left: 3px solid var(--phosphor-amber-mid);
+}
+
+.crt-link-chip {
+  border-radius: 0.25rem;
+  border: 1px solid color-mix(in srgb, var(--phosphor-amber-dim) 55%, transparent);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text-primary);
+  transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.crt-link-chip:hover {
+  border-color: var(--phosphor-amber-mid);
+  color: var(--phosphor-amber);
+  box-shadow: 0 0 14px var(--phosphor-glow-soft);
+}
+
+/* Terminal verde + CRT */
+.crt-terminal-scanlines {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.28) 2px,
+    rgba(0, 0, 0, 0.28) 4px
+  );
+}
+
+.crt-terminal-vignette {
+  background: radial-gradient(ellipse at center, transparent 42%, rgba(0, 0, 0, 0.62) 100%);
+}
+
+.crt-terminal-glow {
+  text-shadow: 0 0 10px rgba(0, 255, 90, 0.35), 0 0 2px rgba(0, 255, 80, 0.2);
+}
+
+/* Barra de navegação — CRT / transmissão */
+.crt-nav-scanlines {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 3px,
+    rgba(0, 0, 0, 0.2) 3px,
+    rgba(0, 0, 0, 0.2) 4px
+  );
+}
+
+.crt-nav-link {
+  color: var(--text-muted);
+  text-shadow: none;
+  transition: color 0.18s ease, text-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.crt-nav-link:hover {
+  color: var(--phosphor-amber);
+  text-shadow: 0 0 10px var(--phosphor-glow-soft), 0 0 2px rgba(255, 190, 120, 0.35);
+}
+
+.crt-nav-link:focus-visible {
+  outline: 1px solid var(--phosphor-amber-mid);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Degradê entre seções (topo = cor da seção anterior → fundo atual) */
+.section-bg-sobre {
+  background-color: var(--bg-surface);
+  background-image: linear-gradient(180deg, #050403 0%, #100d0a 100%);
+  background-size: 100% 6.5rem;
+  background-repeat: no-repeat;
+  background-position: top center;
+}
+
+.section-bg-autopel {
+  background-color: #0d1520;
+  background-image: linear-gradient(180deg, #100d0a 0%, #0d1520 100%);
+  background-size: 100% 6.5rem;
+  background-repeat: no-repeat;
+  background-position: top center;
+}
+
+.section-bg-seguranca {
+  background-color: #050a05;
+  background-image: linear-gradient(180deg, #0d1520 0%, #080f14 55%, #050a05 100%);
+  background-size: 100% 7rem;
+  background-repeat: no-repeat;
+  background-position: top center;
+}
+
+.section-bg-linux {
+  background-color: var(--bg-surface);
+  background-image: linear-gradient(180deg, #050a05 0%, #100d0a 100%);
+  background-size: 100% 6.5rem;
+  background-repeat: no-repeat;
+  background-position: top center;
+}
+
+.section-bg-stack {
+  background-color: var(--bg-primary);
+  background-image: linear-gradient(180deg, #100d0a 0%, #090705 100%);
+  background-size: 100% 6.5rem;
+  background-repeat: no-repeat;
+  background-position: top center;
+}
+
+.section-bg-linkedin {
+  background-color: var(--bg-surface);
+  background-image: linear-gradient(180deg, #090705 0%, #100d0a 100%);
+  background-size: 100% 6.5rem;
+  background-repeat: no-repeat;
+  background-position: top center;
+}
+
+.section-bg-footer {
+  background-color: #040302;
+  background-image: linear-gradient(180deg, #100d0a 0%, #040302 100%);
+  background-size: 100% 5rem;
+  background-repeat: no-repeat;
+  background-position: top center;
 }
