@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import "./print.css";
 
-export default function CurriculoPage() {
+function CurriculoContent() {
   const searchParams = useSearchParams();
   const shouldPrint = searchParams.get("print") === "1";
 
@@ -182,3 +182,16 @@ export default function CurriculoPage() {
   );
 }
 
+export default function CurriculoPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="curriculo-root" aria-busy="true">
+          <p className="no-print curriculo-actions">Carregando currículo…</p>
+        </main>
+      }
+    >
+      <CurriculoContent />
+    </Suspense>
+  );
+}

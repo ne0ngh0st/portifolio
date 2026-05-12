@@ -10,22 +10,68 @@ import {
 } from "react-icons/fa";
 import { FiFileText } from "react-icons/fi";
 
-const container = {
+const HERO_HEADING_TEXT = "Antonio Pedro Reale Barbosa";
+
+/** Typewriter no nome — depois blocos com espaçamento estável (não sobrepõe o título). */
+const TYPE_T0 = 0.35;
+const TYPE_STAGGER = 0.048;
+const TYPE_DURATION = 0.13;
+
+const typewriterDoneAt =
+  TYPE_T0 +
+  (HERO_HEADING_TEXT.length - 1) * TYPE_STAGGER +
+  TYPE_DURATION;
+
+const AFTER_NAME_PAUSE = 0.12;
+const SECTION_GAP = 0.26;
+
+const DELAY_HANDLE = typewriterDoneAt + AFTER_NAME_PAUSE;
+const DELAY_TAGLINES = DELAY_HANDLE + SECTION_GAP;
+const DELAY_LINKS = DELAY_TAGLINES + SECTION_GAP;
+const DELAY_LOCATION = DELAY_LINKS + SECTION_GAP;
+
+const tvPanelShow = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.12, delayChildren: 0.1 },
+    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const },
   },
 };
 
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const },
-  },
+/** Só para propagar variantes do painel às letras. */
+const tvHeadingPassThrough = {
+  hidden: {},
+  show: {},
 };
+
+function heroBlockAt(delaySeconds: number) {
+  return {
+    hidden: { opacity: 0, y: 20 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.78,
+        ease: [0.22, 1, 0.36, 1] as const,
+        delay: delaySeconds,
+      },
+    },
+  };
+}
+
+function heroLetterVariant(letterIndex: number) {
+  return {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        delay: TYPE_T0 + letterIndex * TYPE_STAGGER,
+        duration: TYPE_DURATION,
+        ease: "easeOut" as const,
+      },
+    },
+  };
+}
 
 // Duração total da animação de boot em ms
 const BOOT_DURATION_MS = 4200;
@@ -231,24 +277,43 @@ export function Hero() {
             className="crt-screen-surface relative overflow-hidden"
             style={{
               margin: "6.8% 8.5% 16.5%",
-              borderRadius: "2% / 3%",
+              borderRadius: "52% 52% 49% 49% / 12% 12% 10% 10%",
             }}
           >
             <motion.div
               className={`relative z-[1] px-5 py-10 text-center md:px-10 md:py-12 ${reduce ? "" : "crt-flicker"}`}
-              variants={reduce ? undefined : container}
+              variants={reduce ? undefined : tvPanelShow}
               initial={reduce ? false : "hidden"}
               animate={reduce ? undefined : booted ? "show" : "hidden"}
             >
-              <motion.h1
-                id="hero-heading"
-                variants={reduce ? undefined : item}
-                className="crt-phosphor-text font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl lg:text-5xl"
-              >
-                Antonio Pedro Reale Barbosa
-              </motion.h1>
+              {reduce ? (
+                <h1
+                  id="hero-heading"
+                  className="crt-phosphor-text font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl lg:text-5xl"
+                >
+                  {HERO_HEADING_TEXT}
+                </h1>
+              ) : (
+                <motion.h1
+                  id="hero-heading"
+                  aria-label={HERO_HEADING_TEXT}
+                  variants={tvHeadingPassThrough}
+                  className="crt-phosphor-text font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl lg:text-5xl"
+                >
+                  {HERO_HEADING_TEXT.split("").map((char, i) => (
+                    <motion.span
+                      key={`heading-char-${i}`}
+                      variants={heroLetterVariant(i)}
+                      className="inline-block"
+                      aria-hidden
+                    >
+                      {char === " " ? "\u00A0" : char}
+                    </motion.span>
+                  ))}
+                </motion.h1>
+              )}
               <motion.p
-                variants={reduce ? undefined : item}
+                variants={reduce ? undefined : heroBlockAt(DELAY_HANDLE)}
                 className="crt-phosphor-text mt-4 font-display text-base md:text-lg"
               >
                 @ne0ngh0st
@@ -265,7 +330,7 @@ export function Hero() {
                 />
               </motion.p>
               <motion.div
-                variants={reduce ? undefined : item}
+                variants={reduce ? undefined : heroBlockAt(DELAY_TAGLINES)}
                 className="crt-phosphor-muted mt-6 space-y-1 text-base md:text-lg"
               >
                 <p>Desenvolvedor de Sistemas &amp; Integrações</p>
@@ -275,7 +340,7 @@ export function Hero() {
               </motion.div>
 
               <motion.ul
-                variants={reduce ? undefined : item}
+                variants={reduce ? undefined : heroBlockAt(DELAY_LINKS)}
                 className="mt-8 flex flex-wrap justify-center gap-2"
                 role="list"
               >
@@ -340,17 +405,22 @@ export function Hero() {
               </motion.ul>
 
               <motion.p
-                variants={reduce ? undefined : item}
+                variants={reduce ? undefined : heroBlockAt(DELAY_LOCATION)}
                 className="crt-phosphor-muted mt-6 font-display text-sm md:text-base"
               >
-                <span role="img" aria-label="Localização">📍</span>{" "}
+                <span
+                  className="crt-phosphor-muted font-display"
+                  aria-hidden
+                >
+                  [SP]
+                </span>{" "}
                 São Paulo, SP
               </motion.p>
             </motion.div>
 
             {/* overlays CRT */}
             <div
-              className="crt-scanlines-overlay-strong pointer-events-none absolute inset-0 z-[2] opacity-[0.65]"
+              className="crt-scanlines-overlay-strong pointer-events-none absolute inset-0 z-[2] opacity-[0.85]"
               aria-hidden
             />
             <div
